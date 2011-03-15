@@ -2,14 +2,20 @@ use warnings;
 use strict;
 
 use POE::Filter::Redis;
-use Test::More tests => 26;
+use Test::More tests => 56;
 
 # Network Newline
 my $nn = "\x0D\x0A";
 
-my $f = POE::Filter::Redis->new();
+my $filter = POE::Filter::Redis->new();
+my $clone  = $filter->clone();
 
-{
+
+foreach my $f ( $filter, $clone ) {
+
+  isa_ok($f,'POE::Filter::Redis');
+  isa_ok($f,'POE::Filter');
+
 	my $redis_stream = (
 		"+OK${nn}" .               # Positive response.
 		"-NOT OK THIS TIME${nn}" . # Negative response.
@@ -36,7 +42,8 @@ my $f = POE::Filter::Redis->new();
 	is_deeply(\@result, \@redis_equiv, 'redis stream parsed');
 }
 
-{
+foreach my $f ( $filter, $clone ) {
+
 	my $redis_stream = "*3${nn}\$1${nn}a${nn}\$-1${nn}\$3${nn}def${nn}";
 
 	my @redis_equiv = (
