@@ -16,12 +16,11 @@ use constant {
 
 use constant {
   SELF_BUFFER   => 0,
-  SELF_ENCODING => 1,
-  SELF_STATE    => 2,
-  SELF_HAS      => 3,
-  SELF_LENGTH   => 4,
-  SELF_AWAITING => 5,
-  SELF_TYPE     => 6,
+  SELF_STATE    => 1,
+  SELF_HAS      => 2,
+  SELF_LENGTH   => 3,
+  SELF_AWAITING => 4,
+  SELF_TYPE     => 5,
 };
 
 sub new {
@@ -31,7 +30,6 @@ sub new {
 
   return bless [
     '',              # SELF_BUFFER
-    $args{encoding}, # SELF_ENCODING
     PARSER_IDLE,     # SELF_STATE
     [ ],             # SELF_HAS
     0,               # SELF_LENGTH
