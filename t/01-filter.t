@@ -2,7 +2,6 @@ use warnings;
 use strict;
 
 use POE::Filter::Redis;
-use YAML;
 use Test::More tests => 26;
 
 # Network Newline

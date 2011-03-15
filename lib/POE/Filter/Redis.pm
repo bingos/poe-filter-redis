@@ -4,7 +4,6 @@ package POE::Filter::Redis;
 
 use strict;
 use warnings;
-use Encode ();
 use Carp qw[carp croak];
 use base qw[POE::Filter];
 
@@ -29,14 +28,6 @@ sub new {
   my $package = shift;
 
   my %args = @_;
-
-  if ( my $encoding = $args{encoding}) {
-    $args{encoding} = Encode::find_encoding( $encoding );
-    unless ( ref $args{encoding} ) {
-      carp qq{Encoding '$encoding' is invalid, ignoring};
-      delete $args{encoding};
-    }
-  }
 
   return bless [
     '',              # SELF_BUFFER
@@ -92,7 +83,7 @@ sub get_one {
     }
     else {
       # TODO - Recover somehow.
-      die "illegal redis response:\n$self->[SELF_BUFFER]";
+      croak "illegal redis response:\n$self->[SELF_BUFFER]";
     }
   }
 
@@ -120,7 +111,7 @@ sub get_one {
     }
 
     # TODO - Just for debugging..
-    die "unexpected state $self->[SELF_STATE]" unless (
+    croak "unexpected state $self->[SELF_STATE]" unless (
       $self->[SELF_STATE] & PARSER_IN_BULK
     );
 
@@ -145,7 +136,7 @@ sub get_one {
     $self->[SELF_STATE] = PARSER_BETWEEN_BULK;
   }
 
-  die "never gonna give you up, never gonna let you down";
+  croak "never gonna give you up, never gonna let you down";
 }
 
 sub put {
@@ -154,14 +145,13 @@ sub put {
   my @raw;
   foreach my $line ( @{ $cmds } ) {
     next unless ref $line eq 'ARRAY';
+    next unless scalar @{ $line };
     my $cmd = shift @{ $line };
     push @raw,
       join( "\x0D\x0A",
             '*' . ( 1 + @{ $line } ),
             map { ('$' . length $_ => $_) }
-              ( uc($cmd), map { $self->{encoding} && length($_)
-                                ? $self->{encoding}->encode($_)
-                                : $_ } @{ $line } ) ) . "\x0D\x0A";
+              ( uc($cmd), @{ $line } ) ) . "\x0D\x0A";
   }
   \@raw;
 }
