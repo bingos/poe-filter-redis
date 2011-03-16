@@ -2,7 +2,7 @@ use warnings;
 use strict;
 
 use POE::Filter::Redis;
-use Test::More tests => 56;
+use Test::More tests => 60;
 
 # Network Newline
 my $nn = "\x0D\x0A";
@@ -56,4 +56,23 @@ foreach my $f ( $filter, $clone ) {
 		my @result = @{ $f->get_one([ $character ]) };
 		is_deeply(\@result, shift @redis_equiv, "parsing stream incrementally");
 	}
+}
+
+foreach my $f ( $filter, $clone ) {
+
+  my @cmds = (
+      [ 'SET', 'mykey', 'myvalue' ],
+      [ 'quit' ],
+  );
+
+  my @puts = (
+      [ "*3${nn}\$3${nn}SET${nn}\$5${nn}mykey${nn}\$7${nn}myvalue${nn}" ],
+      [ "*1${nn}\$4${nn}QUIT${nn}" ],
+  );
+
+  foreach my $cmd ( @cmds ) {
+    my $data = $f->put( [ $cmd ] );
+    is_deeply( $data, shift @puts, 'put a command' );
+  }
+
 }
