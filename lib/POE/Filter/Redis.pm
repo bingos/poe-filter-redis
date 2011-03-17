@@ -137,6 +137,12 @@ sub get_one {
   croak "never gonna give you up, never gonna let you down";
 }
 
+sub get_pending {
+  my $self = shift;
+  return [ $self->[SELF_BUFFER] ] if length $self->[SELF_BUFFER];
+  return undef;
+}
+
 sub put {
   my ($self,$cmds) = @_;
 
@@ -157,6 +163,73 @@ sub put {
 qq[Redis Filter];
 
 =pod
+
+=head1 SYNOPSIS
+
+  use POE::Filter::Redis;
+
+  my $filter = POE::Filter::Redis->new();
+
+  my $stream = $filter->put( [ [ 'SET', 'mykey', 'myvalue' ] ] );
+
+  my $responses = $filter->get( [ "-NOT OK THIS TIME\x0D\x0A", "$6\x0D\x0Afoobar\x0D\x0A" ] );
+
+=head1 DESCRIPTION
+
+POE::Filter::Redis is a L<POE::Filter> for the Redis protocol, L<http://redis.io/topics/protocol>.
+
+It is a C<client> side implementation.
+
+It should be L<POE::Filter::Stackable> friendly if you like that sort of thing.
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item C<new>
+
+Creates a new POE::Filter::Redis object.
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item C<get>
+
+=item C<get_one_start>
+
+=item C<get_one>
+
+Takes an arrayref which contains lines of Redis protocol streams from a Redis server.
+Returns arrayref of arrayrefs, each being a complete response from the server.
+
+=item C<put>
+
+Takes an arrayref of arrayrefs. Each arrayref should contain an individual Redis command and
+any additional parameters.
+Returns an arrayref of protocol encoded strings suitable for sending over the wire to a Redis
+server.
+
+=item C<get_pending>
+
+Returns any data remaining in a filter's input buffer
+
+=item C<clone>
+
+Makes a copy of the filter, and clears the copy's buffer.
+
+=back
+
+=head1 SEE ALSO
+
+Please see L<POE::Filter> for documentation regarding the base
+interface.
+
+L<http://redis.io/topics/protocol>
+
+L<http://redis.io/>
 
 =cut
 
